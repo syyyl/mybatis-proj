@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ohgiraffers.model.mapper.BookMapper">
+
+    <resultMap id="bookResultMap" type="com.ohgiraffers.model.dto.BookDTO">
+        <id property="bookCode" column="book_code"/>
+        <result property="bookName" column="book_name"/>
+        <result property="publisher" column="publisher"/>
+        <result property="releaseDate" column="release_date"/>
+        <result property="amount" column="amount"/>
+        <result property="categoryCode" column="category_code"/>
+        <result property="loanableYN" column="loanable_yn"/>
+    </resultMap>
+
+    <resultMap id="memberResultMap" type="com.ohgiraffers.model.dto.MemberDTO">
+        <id property="memberCode" column="member_code"/>
+        <result property="memberName" column="member_name"/>
+        <result property="joinDate" column="join_date"/>
+        <result property="loanYN" column="loan_yn"/>
+        <result property="loanedBook" column="loaned_book"/>
+    </resultMap>
+
+    <resultMap id="memberAndBookResultMap" type="com.ohgiraffers.model.dto.MemberAndBookDTO">
+        <id property="memberCode" column="member_code"/>
+        <result property="memberName" column="member_name"/>
+        <association property="loanedBook" resultMap="bookResultMap"/>
+    </resultMap>
+
+    <select id="viewAllList" resultMap="bookResultMap">
+        SELECT
+            book_code,
+            book_name,
+            publisher,
+            release_date,
+            loanable_yn
+        FROM
+            book_info
+    </select>
+
+    <select id="searchByTitle" parameterType="string" resultMap="bookResultMap">
+        SELECT
+            book_code,
+            book_name,
+            publisher,
+            release_date,
+            loanable_yn
+        FROM
+            book_info
+        WHERE
+            book_name LIKE CONCAT('%', #{searchStr}, '%')
+    </select>
+
+    <insert id="addBook" parameterType="com.ohgiraffers.model.dto.BookDTO">
+        INSERT INTO
+            book_info (book_name, publisher, release_date, amount, category_code, loanable_yn)
+        VALUES
+            (#{bookName}, #{publisher}, #{releaseDate}, #{amount}, #{categoryCode}, #{loanableYN})
+    </insert>
+
+    <update id="updateBook" parameterType="com.ohgiraffers.model.dto.BookDTO">
+        UPDATE
+            book_info
+        SET
+            book_name = #{bookName},
+            publisher = #{publisher},
+            release_date = #{releaseDate},
+            amount = #{amount},
+            category_code = #{categoryCode},
+            loanable_yn = #{loanableYN}
+        WHERE
+            book_code = #{bookCode}
+    </update>
+
+    <delete id="deleteBook" parameterType="_int">
+        DELETE FROM
+            book_info
+        WHERE
+            book_code = #{ bookCode }
+    </delete>
+
+    <select id="searchLoanedBooksList" parameterType="java.lang.String" resultMap="memberAndBookResultMap">
+        SELECT
+            m.member_code,
+            m.member_name,
+            b.book_code,
+            b.book_name,
+            b.publisher,
+            b.release_date,
+            b.amount,
+            b.category_code,
+            b.loanable_yn
+        FROM
+            member_info m
+        JOIN
+            book_info b ON m.loaned_book = b.book_code
+        WHERE
+            m.member_code = #{searchStr}
+    </select>
+
+</mapper>
